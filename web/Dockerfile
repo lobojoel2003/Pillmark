@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Pillmark web app (SvelteKit, adapter-node). Needs API_URL pointing at the API.
 
-FROM node:22-alpine AS build
+FROM node:25-alpine AS build
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
@@ -12,7 +12,7 @@ ARG COMMIT=dev
 ENV PILLMARK_BUILD=${BUILD} PILLMARK_COMMIT=${COMMIT}
 RUN npm run build
 
-FROM node:22-alpine
+FROM node:25-alpine
 ARG VERSION=0.0.0-dev
 ARG COMMIT=dev
 LABEL org.opencontainers.image.title="pillmark-web" \
