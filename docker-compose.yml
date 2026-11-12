@@ -1,0 +1,79 @@
+# Run Pillmark locally:
+#   docker compose up -d --build
+#   docker compose run --rm api pillmark import drug metformin lisinopril   # quick demo data
+#   open http://localhost:3000
+#
+# The importer service keeps the data fresh by reading DailyMed's daily update every night.
+
+name: pillmark
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: pillmark
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pillmark}
+      POSTGRES_DB: pillmark
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pillmark -d pillmark"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      args:
+        VERSION: ${PILLMARK_VERSION:-dev}
+        BUILD: ${PILLMARK_BUILD:-local}
+        COMMIT: ${PILLMARK_COMMIT:-unknown}
+    image: ghcr.io/lobojoel2003/pillmark-api:${PILLMARK_TAG:-latest}
+    environment:
+      DATABASE_URL: postgresql://pillmark:${POSTGRES_PASSWORD:-pillmark}@db:5432/pillmark
+      PILLMARK_MIGRATE_ON_START: "true"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      args:
+        BUILD: ${PILLMARK_BUILD:-local}
+        COMMIT: ${PILLMARK_COMMIT:-dev}
+    image: ghcr.io/lobojoel2003/pillmark-web:${PILLMARK_TAG:-latest}
+    environment:
+      API_URL: http://api:8000
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+      ORIGIN: ${ORIGIN:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  importer:
+    build:
+      context: ./api
+      args:
+        VERSION: ${PILLMARK_VERSION:-dev}
+        BUILD: ${PILLMARK_BUILD:-local}
+        COMMIT: ${PILLMARK_COMMIT:-unknown}
+    image: ghcr.io/lobojoel2003/pillmark-api:${PILLMARK_TAG:-latest}
+    command: ["pillmark", "nightly", "--at", "${PILLMARK_IMPORT_AT:-07:30}", "--now"]
+    environment:
+      DATABASE_URL: postgresql://pillmark:${POSTGRES_PASSWORD:-pillmark}@db:5432/pillmark
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
