@@ -3,14 +3,14 @@
 #   docker run ghcr.io/lobojoel2003/pillmark-api               -> serves the API on :8000
 #   docker run ghcr.io/lobojoel2003/pillmark-api pillmark ...  -> runs the importer CLI
 
-FROM python:3.13-slim AS build
+FROM python:3.15-slim AS build
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1
 WORKDIR /src
 COPY pyproject.toml README.md ./
 COPY src ./src
 RUN pip wheel --wheel-dir /wheels .
 
-FROM python:3.13-slim
+FROM python:3.15-slim
 ARG VERSION=0.0.0-dev
 ARG BUILD=local
 ARG COMMIT=unknown
