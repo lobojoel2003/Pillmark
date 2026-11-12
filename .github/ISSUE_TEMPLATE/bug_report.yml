@@ -1,0 +1,30 @@
+name: Bug report
+description: Something in Pillmark is broken or wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **If someone may have swallowed a pill, call Poison Control at 1-800-222-1222 (US) or your local emergency number now.**
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Link
+      description: The Pillmark URL or API request, if there is one.
+  - type: input
+    id: setid
+    attributes:
+      label: DailyMed set id
+      description: For wrong pill data, the label's set id (on the pill page).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: From the site footer or /v1/meta.

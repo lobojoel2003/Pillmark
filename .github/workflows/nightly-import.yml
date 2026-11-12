@@ -1,0 +1,87 @@
+name: Nightly import
+
+# DailyMed posts each day's label update shortly after midnight US Eastern time.
+# With a DATABASE_URL secret this imports it into that database. Without one it
+# imports yesterday's update into a scratch database, as a canary that warns when
+# DailyMed changes its files.
+on:
+  schedule:
+    - cron: "23 7 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Import this day only (YYYY-MM-DD). Empty: catch up since the last run."
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    name: Import DailyMed daily update
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: pillmark
+          POSTGRES_PASSWORD: pillmark
+          POSTGRES_DB: pillmark
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pillmark -d pillmark"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      HAS_DATABASE: ${{ secrets.DATABASE_URL != '' }}
+      DAY: ${{ inputs.date }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: api/pyproject.toml
+      - name: Install
+        run: pip install ./api
+
+      - name: Import into the database
+        if: env.HAS_DATABASE == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -n "${DAY}" ]; then pillmark --json import daily --date "${DAY}"; else pillmark --json import daily; fi | tee runs.json
+
+      - name: Canary import into a scratch database
+        if: env.HAS_DATABASE != 'true'
+        env:
+          DATABASE_URL: postgresql://pillmark:pillmark@localhost:5432/pillmark
+        run: |
+          day="${DAY:-$(date -u -d yesterday +%F)}"
+          pillmark --json import daily --date "${day}" | tee runs.json
+
+      - name: Summary
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, sys
+          path = pathlib.Path("runs.json")
+          runs = json.loads(path.read_text()) if path.exists() and path.stat().st_size else []
+          lines = ["| Source | Status | Labels written | Pills | Removed | Errors |", "|---|---|---|---|---|---|"]
+          for r in runs:
+              lines.append(f"| {r['source']} | {r['status']} | {r['labels_upserted']} | {r['pills_written']} | {r['labels_deleted']} | {r['errors']} |")
+          if not runs:
+              lines.append("| (nothing to import) | | | | | |")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as fh:
+              fh.write("## DailyMed import\n\n" + "\n".join(lines) + "\n")
+          for r in runs:
+              if r["status"] == "missing":
+                  print(f"::notice::{r['message']}")
+              if r["documents"] and r["errors"] > max(5, r["documents"] // 20):
+                  print(f"::error::{r['source']}: {r['errors']} of {r['documents']} documents failed to parse")
+                  sys.exit(1)
+          PY
