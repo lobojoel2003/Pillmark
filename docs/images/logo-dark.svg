@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" width="520" height="120" role="img" aria-label="Pillmark">
+  <defs>
+    <clipPath id="c"><rect x="5" y="19" width="54" height="26" rx="13"/></clipPath>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(6 10) scale(1.55)">
+    <g transform="rotate(-38 32 32)">
+      <g clip-path="url(#c)">
+        <rect x="5" y="19" width="54" height="26" fill="#F6F4EE"/>
+        <rect x="32" y="19" width="27" height="26" fill="#0E7A64"/>
+        <rect x="5" y="19" width="54" height="26" fill="url(#g)"/>
+      </g>
+      <rect x="5" y="19" width="54" height="26" rx="13" fill="none" stroke="#0B5E4D" stroke-width="2.5"/>
+      <line x1="32" y1="19" x2="32" y2="45" stroke="#0B5E4D" stroke-width="2.5"/>
+    </g>
+  </g>
+  <text x="118" y="70" font-family="-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="56" font-weight="800" letter-spacing="-2" fill="#F3F0E9">Pillmark</text>
+  <text x="121" y="100" font-family="-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="600" fill="#A39C91">open pill identifier</text>
+</svg>
