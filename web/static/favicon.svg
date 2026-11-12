@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Pillmark</title>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="c"><rect x="5" y="19" width="54" height="26" rx="13"/></clipPath>
+  </defs>
+  <g transform="rotate(-38 32 32)">
+    <g clip-path="url(#c)">
+      <rect x="5" y="19" width="54" height="26" fill="#F6F4EE"/>
+      <rect x="32" y="19" width="27" height="26" fill="#0E7A64"/>
+      <rect x="5" y="19" width="54" height="26" fill="url(#g)"/>
+    </g>
+    <rect x="5" y="19" width="54" height="26" rx="13" fill="none" stroke="#0B5E4D" stroke-width="2.5"/>
+    <line x1="32" y1="19" x2="32" y2="45" stroke="#0B5E4D" stroke-width="2.5"/>
+  </g>
+</svg>
